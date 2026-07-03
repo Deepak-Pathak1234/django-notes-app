@@ -1,3 +1,4 @@
+@Library("share") _
 pipeline{
     agent {label "raw"}
     stages{
