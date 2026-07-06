@@ -1,46 +1,36 @@
-@Library("share") _
+@Library("shared") _
 pipeline{
-    agent {label "raw"}
+    agent{label "raw"}
     stages{
-        stage("code"){
-            steps{
-                script{
-                    code("https://github.com/Deepak-Pathak1234/django-notes-app.git","main")
-                }
-              
-               
-            }
+        stage("cloning"){
+          steps{
+              script{
+                  code("https://github.com/Deepak-Pathak1234/django-notes-app.git","main")
+              }
+                
+          }
         }
-       
-        stage("build"){
+        stage("building"){
             steps{
+                echo "building the code"
                 sh "docker build -t notes-app ."
-                echo "building code is done ffff"
             }
         }
-       stage('Push Image') {
-        steps {
-        withCredentials([
-            usernamePassword(
-                credentialsId: 'dockerhubcred',
-                usernameVariable: 'dockerhubuser',
-                passwordVariable: 'dockerhubpass'
-            )
-        ]) {
-            sh '''
-            echo "$dockerhubpass" | docker login -u "$dockerhubuser" --password-stdin
-            docker tag notes-app:latest $dockerhubuser/notes-app:latest
-            docker push $dockerhubuser/notes-app:latest
-            '''
-        }
-    }
-}
-        
-        stage("compose"){
+        stage("push the code "){
             steps{
+                withCredentials([usernamePassword(credentialsId:"dockerhubcred",usernameVariable:"user",passwordVariable:"pass")]){
+                echo "pushing the code"
+                sh "docker login -u $user -p $pass"
+                sh "docker image tag notes-app:latest $user/notes-app:latest"
+                sh "docker push $user/notes-app:latest"
+                }
+            }
+        }
+        stage("run"){
+            steps{
+                echo "run the code"
                 sh "docker compose down"
-                sh "docker compose up -d"
-                echo "comopsed up"
+                sh "docker compose up"
             }
         }
     }
